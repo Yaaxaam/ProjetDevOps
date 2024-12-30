@@ -2,11 +2,25 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'yaxam/projectdevops:latest'
-        DOCKER_USERNAME = 'yaxam'
-        DOCKER_PASSWORD = 'yK0xvYmeKj9exY'
+        ENV_FILE = '.env'
     }
     stages {
+        stage('Load Environment Variables') {
+            steps {
+                script {
+                    echo 'Loading environment variables from .env file...'
+                        def envVars = readFile(env.ENV_FILE).split('\n')
+                        envVars.each { line ->
+                            if (line.trim() && !line.startsWith('#')) {
+                                def parts = line.split('=')
+                                if (parts.size() == 2) {
+                                    env[parts[0]] = parts[1]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         stage('Application Compilation') {
             steps {
                 script {
