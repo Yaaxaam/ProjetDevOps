@@ -3,35 +3,24 @@ pipeline {
 
     environment {
         ENV_FILE = '.env'
-        DOCKER_IMAGE = ''
-        DOCKER_USERNAME = ''
-        DOCKER_PASSWORD = ''
     }
 
     stages {
         stage('Load Environment Variables') {
-            steps {
-                script {
-                    echo 'Loading environment variables from .env file...'
-                    def envVars = readFile(env.ENV_FILE).split('\n')
-                    envVars.each { line ->
-                        if (line.trim() && !line.startsWith('#')) {
-                            def parts = line.split('=')
-                            if (parts.size() == 2) {
-                                if (parts[0] == 'DOCKER_IMAGE') {
-                                    env.DOCKER_IMAGE = parts[1]
-                                }
-                                if (parts[0] == 'DOCKER_USERNAME') {
-                                    env.DOCKER_USERNAME = parts[1]
-                                }
-                                if (parts[0] == 'DOCKER_PASSWORD') {
-                                    env.DOCKER_PASSWORD = parts[1]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+             steps {
+                 script {
+                     echo 'Loading environment variables from .env file...'
+                     def envVars = readFile(env.ENV_FILE).split('\n')
+                     envVars.each { line ->
+                         if (line.trim() && !line.startsWith('#')) {
+                             def parts = line.split('=')
+                             if (parts.size() == 2) {
+                                 env[parts[0]] = parts[1]
+                             }
+                         }
+                     }
+                 }
+             }
         }
 
         stage('Application Compilation') {
@@ -68,6 +57,26 @@ pipeline {
                     bat "docker login -u ${env.DOCKER_USERNAME} -p ${env.DOCKER_PASSWORD}"
                     echo 'Uploading Docker image to DockerHub...'
                     bat "docker push ${env.DOCKER_IMAGE}"
+                }
+            }
+        }
+
+        stage('Deploy to VM') {
+            steps {
+                script {
+                    echo 'Deploying to the virtual machine...'
+                    def sshKeyPath = env.SSH_KEY_PATH
+
+                    sh '''
+                        chmod 600 ${sshKeyPath}
+
+                        ssh -o StrictHostKeyChecking=no -i ${sshKeyPath} $VM_USER@$VM_IP "
+                            docker pull ${env.DOCKER_IMAGE} && \
+                            docker stop my_container || true && \
+                            docker rm my_container || true && \
+                            docker run -d --name my_container ${env.DOCKER_IMAGE}
+                        "
+                    '''
                 }
             }
         }
