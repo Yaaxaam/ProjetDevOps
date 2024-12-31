@@ -86,7 +86,7 @@ pipeline {
         stage('Deploy') {
                     steps {
                         script {
-                            sshagent(['yassine']) {
+                            sshagent(['SSH key']) {
                                 bat 'ssh %VM_USER%@%VM_IP% "docker pull a%DOCKER_IMAGE%"'
                                 bat 'ssh %VM_USER%@%VM_IP% "docker stop projectdevops_container || true"'
                                 bat 'ssh %VM_USER%@%VM_IP% "docker rm projectdevops_container || true"'
