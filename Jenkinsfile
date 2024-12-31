@@ -49,7 +49,7 @@ pipeline {
             steps {
                 script {
                     echo 'Compiling the application...'
-                    bat 'mvn clean package'
+                    sh 'mvn clean package'
                 }
             }
         }
@@ -58,7 +58,7 @@ pipeline {
             steps {
                 script {
                     echo 'Executing unit tests...'
-                    bat 'mvn test'
+                    sh 'mvn test'
                 }
             }
         }
@@ -67,7 +67,7 @@ pipeline {
             steps {
                 script {
                     echo 'Creating the Docker image...'
-                    bat "docker build -t %DOCKER_IMAGE% ."
+                    sh "docker build -t %DOCKER_IMAGE% ."
                 }
             }
         }
@@ -76,9 +76,9 @@ pipeline {
             steps {
                 script {
                     echo 'Authenticating with DockerHub...'
-                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+                    sh "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     echo 'Uploading Docker image to DockerHub...'
-                    bat "docker push %DOCKER_IMAGE%"
+                    sh "docker push %DOCKER_IMAGE%"
                 }
             }
         }
@@ -87,10 +87,10 @@ pipeline {
                     steps {
                         script {
                             sshagent(['SSHKey']) {
-                                bat 'ssh %VM_USER%@%VM_IP% "docker pull a%DOCKER_IMAGE%"'
-                                bat 'ssh %VM_USER%@%VM_IP% "docker stop projectdevops_container || true"'
-                                bat 'ssh %VM_USER%@%VM_IP% "docker rm projectdevops_container || true"'
-                                bat 'ssh %VM_USER%@%VM_IP% "docker run -d -p 8080:8080 --name projectdevops_container %DOCKER_IMAGE%"'
+                                sh 'ssh %VM_USER%@%VM_IP% "docker pull a%DOCKER_IMAGE%"'
+                                sh 'ssh %VM_USER%@%VM_IP% "docker stop projectdevops_container || true"'
+                                sh 'ssh %VM_USER%@%VM_IP% "docker rm projectdevops_container || true"'
+                                sh 'ssh %VM_USER%@%VM_IP% "docker run -d -p 8080:8080 --name projectdevops_container %DOCKER_IMAGE%"'
                             }
                         }
             }
