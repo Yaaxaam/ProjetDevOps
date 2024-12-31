@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         ENV_FILE = '.env'
+        WORKSPACE = '.'
     }
 
     stages {
@@ -62,7 +63,7 @@ pipeline {
             steps {
                 script {
                     echo 'Creating the Docker image...'
-                    bat "docker build -t ${env.DOCKER_IMAGE} ."
+                    bat "docker build -t ${env.DOCKER_IMAGE} ${env.WORKSPACE}"
                 }
             }
         }
