@@ -8,7 +8,6 @@ pipeline {
         DOCKER_PASSWORD='yK0xvYmeKj9exY'
         VM_IP='192.168.29.128'
         VM_USER='yassine'
-        SSH_KEY_PATH='/home/yassine/.ssh/id_rsa'
     }
 
     stages {
@@ -84,22 +83,16 @@ pipeline {
             }
         }
 
-        stage('Deploy to VM') {
-            steps {
-                script {
-                    echo 'Deploying to the virtual machine...'
-
-                    sh """
-                        chmod 600 %SSH_KEY_PATH%
-                        ssh -o StrictHostKeyChecking=no -i %SSH_KEY_PATH% %VM_USER%@%VM_IP% << EOF
-                        docker pull %DOCKER_IMAGE%
-                        docker stop my_container || true
-                        docker rm my_container || true
-                        docker run -d --name my_container %DOCKER_IMAGE%
-                        EOF
-                    """
-
-                }
+        stage('Deploy') {
+                    steps {
+                        script {
+                            sshagent(['yassine']) {
+                                bat 'ssh %VM_USER%@%VM_IP% "docker pull a%DOCKER_IMAGE%"'
+                                bat 'ssh %VM_USER%@%VM_IP% "docker stop projectdevops_container || true"'
+                                bat 'ssh %VM_USER%@%VM_IP% "docker rm projectdevops_container || true"'
+                                bat 'ssh %VM_USER%@%VM_IP% "docker run -d -p 8080:8080 --name projectdevops_container %DOCKER_IMAGE%"'
+                            }
+                        }
             }
         }
     }
