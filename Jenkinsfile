@@ -88,18 +88,17 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to the virtual machine...'
-                    def sshKeyPath = SSH_KEY_PATH
 
-                    sh '''
-                        chmod 600 ${sshKeyPath}
+                    sh """
+                        chmod 600 %SSH_KEY_PATH%
+                        ssh -o StrictHostKeyChecking=no -i %SSH_KEY_PATH% %VM_USER%@%VM_IP% << EOF
+                        docker pull %DOCKER_IMAGE%
+                        docker stop my_container || true
+                        docker rm my_container || true
+                        docker run -d --name my_container %DOCKER_IMAGE%
+                        EOF
+                    """
 
-                        ssh -o StrictHostKeyChecking=no -i ${sshKeyPath} $VM_USER@$VM_IP "
-                            docker pull ${env.DOCKER_IMAGE} && \
-                            docker stop my_container || true && \
-                            docker rm my_container || true && \
-                            docker run -d --name my_container ${env.DOCKER_IMAGE}
-                        "
-                    '''
                 }
             }
         }
