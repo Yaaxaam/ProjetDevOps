@@ -2,11 +2,16 @@ pipeline {
     agent any
 
     environment {
-        ENV_FILE = '.env'
-        WORKSPACE = '.'
+        //ENV_FILE = '.env'
+        DOCKER_IMAGE='yaxam/projectdevops:latest'
+        DOCKER_USERNAME='yaxam'
+        DOCKER_PASSWORD='yK0xvYmeKj9exY'
+        VM_IP='192.168.29.128'
+        VM_USER='yassine'
+        SSH_KEY_PATH='/home/yassine/.ssh/id_rsa'
     }
 
-    stages {
+    /*stages {
         stage('Load Environment Variables') {
             steps {
                 script {
@@ -39,7 +44,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
         stage('Application Compilation') {
             steps {
@@ -63,7 +68,7 @@ pipeline {
             steps {
                 script {
                     echo 'Creating the Docker image...'
-                    bat "docker build -t ${env.DOCKER_IMAGE} ${env.WORKSPACE}"
+                    bat "docker build -t %DOCKER_IMAGE% ."
                 }
             }
         }
@@ -72,9 +77,9 @@ pipeline {
             steps {
                 script {
                     echo 'Authenticating with DockerHub...'
-                    bat "docker login -u ${env.DOCKER_USERNAME} -p ${env.DOCKER_PASSWORD}"
+                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     echo 'Uploading Docker image to DockerHub...'
-                    bat "docker push ${env.DOCKER_IMAGE}"
+                    bat "docker push %DOCKER_IMAGE%"
                 }
             }
         }
@@ -83,7 +88,7 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to the virtual machine...'
-                    def sshKeyPath = env.SSH_KEY_PATH
+                    def sshKeyPath = SSH_KEY_PATH
 
                     sh '''
                         chmod 600 ${sshKeyPath}
