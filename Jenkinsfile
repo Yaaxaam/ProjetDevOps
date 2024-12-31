@@ -67,7 +67,7 @@ pipeline {
             steps {
                 script {
                     echo 'Creating the Docker image...'
-                    sh "docker build -t %DOCKER_IMAGE% ."
+                    sh "sudo docker buildx build -t %DOCKER_IMAGE% ."
                 }
             }
         }
