@@ -11,8 +11,8 @@ pipeline {
         SSH_KEY_PATH='/home/yassine/.ssh/id_rsa'
     }
 
-    /*stages {
-        stage('Load Environment Variables') {
+    stages {
+        /*stage('Load Environment Variables') {
             steps {
                 script {
                     echo 'Loading environment variables from .env file...'
